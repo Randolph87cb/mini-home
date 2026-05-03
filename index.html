@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mini-home</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23f2e2d7'/%3E%3Cpath d='M18 35 32 22l14 13v11a2 2 0 0 1-2 2h-8V37H28v11h-8a2 2 0 0 1-2-2Z' fill='%23907066'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero-copy">
+        <p class="eyebrow">our little room on the web</p>
+        <h1>线上小家</h1>
+        <p class="intro">
+          不是游戏，不是工具，只是一个把想念、布置和日常痕迹轻轻放在一起的小房间。
+        </p>
+      </header>
+
+      <main class="home-stage">
+        <section class="room-panel" aria-label="房间主场景">
+          <div class="room-background">
+            <div class="wall-art wall-art-left"></div>
+            <div class="wall-art wall-art-right"></div>
+            <div class="window-frame">
+              <div class="window-sky"></div>
+            </div>
+            <div class="avatar avatar-left">
+              <span>我</span>
+            </div>
+            <div class="avatar avatar-right">
+              <span>她</span>
+            </div>
+            <button class="hotspot sofa" data-note-id="sofa">沙发</button>
+            <button class="hotspot lamp" data-note-id="lamp">台灯</button>
+            <button class="hotspot desk" data-note-id="desk">小桌子</button>
+            <button class="hotspot plant" data-note-id="plant">植物</button>
+            <button class="hotspot phone" data-open-phone="true">电话</button>
+          </div>
+        </section>
+
+        <aside class="side-panels">
+          <section class="note-card" aria-live="polite">
+            <p class="card-kicker">物件留言</p>
+            <h2 id="note-title">点开房间里的一个角落</h2>
+            <p id="note-body">
+              首版这里承接短留言。它应该像一张贴在房间边上的小纸片，而不是任务面板。
+            </p>
+          </section>
+
+          <section class="ambient-card">
+            <p class="card-kicker">房间状态</p>
+            <p>
+              今晚的房间有一点奶油色的光，适合把想说的话放慢一点，再说给对方听。
+            </p>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <section class="phone-sheet" id="phone-sheet" aria-hidden="true" hidden>
+      <div class="sheet-card">
+        <div class="sheet-header">
+          <div>
+            <p class="card-kicker">电话留言</p>
+            <h2>留给你慢慢看的话</h2>
+          </div>
+          <button class="sheet-close" id="close-phone" aria-label="关闭电话留言">
+            收起
+          </button>
+        </div>
+        <div class="phone-message-list" id="phone-message-list"></div>
+      </div>
+    </section>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
