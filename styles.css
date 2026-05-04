@@ -89,7 +89,8 @@ button {
 
 .stage-card,
 .note-card,
-.control-card {
+.control-card,
+.validation-card {
   border: 1px solid rgba(175, 146, 135, 0.22);
   border-radius: var(--radius-xl);
   background: var(--paper);
@@ -172,6 +173,36 @@ button {
   cursor: pointer;
 }
 
+.scene.is-debug .scene-item {
+  outline: 1px dashed rgba(203, 120, 104, 0.55);
+}
+
+.scene.is-debug .scene-item::after {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: #6b5149;
+  background: rgba(255, 250, 243, 0.88);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  content: attr(data-id);
+}
+
+.scene.is-debug::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(214, 158, 147, 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(214, 158, 147, 0.18) 1px, transparent 1px);
+  background-size: 48px 48px;
+  content: "";
+  z-index: 999;
+}
+
 .side-panel {
   display: grid;
   gap: 18px;
@@ -179,6 +210,10 @@ button {
 
 .note-card,
 .control-card {
+  padding: 24px 22px;
+}
+
+.validation-card {
   padding: 24px 22px;
 }
 
@@ -220,6 +255,55 @@ button {
 .overlay-close:hover {
   transform: translateY(-2px);
   background: #f1ddd1;
+}
+
+.validation-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.validation-badge {
+  min-width: 72px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  text-align: center;
+  color: var(--ink);
+  background: rgba(232, 214, 198, 0.92);
+}
+
+.validation-badge.is-pass {
+  background: rgba(193, 220, 191, 0.9);
+}
+
+.validation-badge.is-warn {
+  background: rgba(240, 218, 173, 0.95);
+}
+
+.validation-badge.is-fail {
+  background: rgba(234, 189, 182, 0.95);
+}
+
+.validation-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+  line-height: 1.7;
+}
+
+.validation-item-pass::marker {
+  color: #6d936b;
+}
+
+.validation-item-warn::marker {
+  color: #b28b35;
+}
+
+.validation-item-fail::marker {
+  color: #b95f57;
 }
 
 .letter-overlay {

@@ -6,10 +6,14 @@ const noteBodyElement = document.querySelector("#note-body");
 const statusLineElement = document.querySelector("#status-line");
 const resetSceneButton = document.querySelector("#reset-scene");
 const toggleTvButton = document.querySelector("#toggle-tv");
+const toggleDebugButton = document.querySelector("#toggle-debug");
 const letterOverlayElement = document.querySelector("#letter-overlay");
 const closeLetterButton = document.querySelector("#close-letter");
 const letterOpenImageElement = document.querySelector("#letter-open-image");
 const letterBodyElement = document.querySelector("#letter-body");
+const validationTitleElement = document.querySelector("#validation-title");
+const validationBadgeElement = document.querySelector("#validation-badge");
+const validationListElement = document.querySelector("#validation-list");
 
 const noteCopy = {
   idle: {
@@ -41,6 +45,7 @@ const sceneState = {
   pullupFrameIndex: 0,
   pullupTimer: null,
   propPositions: {},
+  debugVisible: new URLSearchParams(window.location.search).get("debug") === "1",
 };
 
 let sceneManifest = null;
@@ -88,6 +93,11 @@ function attachEvents() {
       closeLetterOverlay();
     }
   });
+
+  toggleDebugButton.addEventListener("click", () => {
+    sceneState.debugVisible = !sceneState.debugVisible;
+    renderScene();
+  });
 }
 
 function setSceneMode(mode) {
@@ -117,6 +127,8 @@ function renderScene() {
   sceneElement.innerHTML = "";
   sceneElement.style.setProperty("--scene-width", stage.width);
   sceneElement.style.setProperty("--scene-height", stage.height);
+  sceneElement.classList.toggle("is-debug", sceneState.debugVisible);
+  toggleDebugButton.textContent = sceneState.debugVisible ? "隐藏校验" : "显示校验";
 
   const layers = [];
   layers.push(createImageLayer(sceneManifest.background, "item-background", 0));
@@ -158,6 +170,8 @@ function renderScene() {
   layers
     .sort((left, right) => left.dataset.z - right.dataset.z)
     .forEach((layer) => sceneElement.appendChild(layer));
+
+  window.requestAnimationFrame(validateSceneLayout);
 }
 
 function createAvatarLayer() {
@@ -359,6 +373,153 @@ function snapToGrid(value, gridSize, zoneOrigin) {
 
 function getSceneScale() {
   return sceneElement.clientWidth / sceneManifest.stage.width;
+}
+
+function validateSceneLayout() {
+  const sceneRect = sceneElement.getBoundingClientRect();
+  const activeAvatarId =
+    sceneState.currentMode === "tv"
+      ? "avatar-watch-tv"
+      : sceneState.currentMode === "letters"
+        ? "avatar-read-letter"
+        : sceneState.currentMode === "pullup"
+          ? `avatar-pullup-0${sceneState.pullupFrameIndex === 0 ? 1 : 2}`
+          : "avatar-sit-together";
+
+  const checks = [
+    validateVisible("tv-body", 0.95, "电视必须完整出现在画面里。"),
+    validateVisible("sofa-main", 0.9, "沙发必须大部分可见。"),
+    validateVisible("coffee-table", 0.85, "茶几必须大部分可见。"),
+    validateVisible("letter-board", 0.9, "信件板必须完整出现在上半区。"),
+    validateVisible("pullup-bar", 0.88, "单杠必须大部分可见。"),
+    validateVisible(activeAvatarId, 0.72, "当前角色状态图被裁掉过多。"),
+    validateRange("tv-body", "centerX", 0, sceneRect.width * 0.42, "电视没有留在左侧区域。"),
+    validateRange("letter-board", "centerX", sceneRect.width * 0.55, sceneRect.width, "信件板没有留在右上区域。"),
+    validateRange("letter-board", "top", 0, sceneRect.height * 0.28, "信件板没有挂在上半区。"),
+    validateRange("pullup-bar", "centerX", sceneRect.width * 0.72, sceneRect.width, "单杠没有留在右侧区域。"),
+    validateNoHeavyOverlap("pullup-bar", "letter-board", 0.12, "单杠和信件板重叠太多，点击会互相干扰。"),
+    validateContainedIn("snack-bag", "coffee-table", 0.45, "零食已经偏离茶几有效区域。"),
+    validateContainedIn("water-cup", "coffee-table", 0.45, "水杯已经偏离茶几有效区域。"),
+  ];
+
+  renderValidationResults(checks);
+}
+
+function validateVisible(id, minRatio, failMessage) {
+  const targetRect = getSceneItemRect(id);
+  if (!targetRect) {
+    return failCheck(`${id} 缺失。`);
+  }
+
+  const ratio = visibleRatioWithinScene(targetRect);
+  if (ratio >= minRatio) {
+    return passCheck(`${id} 可见比例 ${Math.round(ratio * 100)}%。`);
+  }
+
+  return failCheck(failMessage);
+}
+
+function validateRange(id, metric, min, max, failMessage) {
+  const targetRect = getSceneItemRect(id);
+  if (!targetRect) {
+    return failCheck(`${id} 缺失。`);
+  }
+
+  const metrics = {
+    left: targetRect.left,
+    right: targetRect.right,
+    top: targetRect.top,
+    bottom: targetRect.bottom,
+    centerX: targetRect.left + targetRect.width / 2,
+    centerY: targetRect.top + targetRect.height / 2,
+  };
+
+  const value = metrics[metric];
+  if (value >= min && value <= max) {
+    return passCheck(`${id} 的 ${metric} 在预期范围内。`);
+  }
+
+  return failCheck(failMessage);
+}
+
+function validateNoHeavyOverlap(primaryId, secondaryId, maxRatio, failMessage) {
+  const primaryRect = getSceneItemRect(primaryId);
+  const secondaryRect = getSceneItemRect(secondaryId);
+  if (!primaryRect || !secondaryRect) {
+    return failCheck(`${primaryId} 或 ${secondaryId} 缺失。`);
+  }
+
+  const overlapArea = intersectionArea(primaryRect, secondaryRect);
+  const overlapRatio = overlapArea / Math.max(1, primaryRect.width * primaryRect.height);
+  if (overlapRatio <= maxRatio) {
+    return passCheck(`${primaryId} 与 ${secondaryId} 没有明显互相遮挡。`);
+  }
+
+  return failCheck(failMessage);
+}
+
+function validateContainedIn(itemId, containerId, minRatio, failMessage) {
+  const itemRect = getSceneItemRect(itemId);
+  const containerRect = getSceneItemRect(containerId);
+  if (!itemRect || !containerRect) {
+    return failCheck(`${itemId} 或 ${containerId} 缺失。`);
+  }
+
+  const containmentRatio = intersectionArea(itemRect, containerRect) / Math.max(1, itemRect.width * itemRect.height);
+  if (containmentRatio >= minRatio) {
+    return passCheck(`${itemId} 仍在 ${containerId} 的有效范围内。`);
+  }
+
+  return failCheck(failMessage);
+}
+
+function visibleRatioWithinScene(targetRect) {
+  const sceneRect = sceneElement.getBoundingClientRect();
+  return intersectionArea(targetRect, sceneRect) / Math.max(1, targetRect.width * targetRect.height);
+}
+
+function intersectionArea(leftRect, rightRect) {
+  const width = Math.max(0, Math.min(leftRect.right, rightRect.right) - Math.max(leftRect.left, rightRect.left));
+  const height = Math.max(0, Math.min(leftRect.bottom, rightRect.bottom) - Math.max(leftRect.top, rightRect.top));
+  return width * height;
+}
+
+function getSceneItemRect(id) {
+  const element = sceneElement.querySelector(`[data-id="${id}"]`);
+  return element?.getBoundingClientRect() ?? null;
+}
+
+function renderValidationResults(checks) {
+  const failures = checks.filter((item) => item.level === "fail");
+  validationListElement.innerHTML = "";
+
+  checks.forEach((check) => {
+    const item = document.createElement("li");
+    item.className = `validation-item-${check.level}`;
+    item.textContent = check.message;
+    validationListElement.appendChild(item);
+  });
+
+  validationBadgeElement.classList.remove("is-pass", "is-warn", "is-fail");
+
+  if (failures.length > 0) {
+    validationTitleElement.textContent = "存在布局问题";
+    validationBadgeElement.textContent = `${failures.length} 个错误`;
+    validationBadgeElement.classList.add("is-fail");
+    return;
+  }
+
+  validationTitleElement.textContent = "布局通过";
+  validationBadgeElement.textContent = "通过";
+  validationBadgeElement.classList.add("is-pass");
+}
+
+function passCheck(message) {
+  return { level: "pass", message };
+}
+
+function failCheck(message) {
+  return { level: "fail", message };
 }
 
 window.addEventListener("beforeunload", clearPullupTimer);

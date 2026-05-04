@@ -61,7 +61,19 @@
             <div class="control-actions">
               <button id="reset-scene" type="button">回到沙发</button>
               <button id="toggle-tv" type="button">切换电视</button>
+              <button id="toggle-debug" type="button">显示校验</button>
             </div>
+          </section>
+
+          <section class="validation-card">
+            <div class="validation-header">
+              <div>
+                <p class="card-kicker">场景校验</p>
+                <h2 id="validation-title">等待检查</h2>
+              </div>
+              <span id="validation-badge" class="validation-badge">--</span>
+            </div>
+            <ul id="validation-list" class="validation-list"></ul>
           </section>
         </aside>
       </main>
