@@ -1,0 +1,110 @@
+{
+  "sceneId": "living-room-v1",
+  "background": {
+    "id": "living-room-base",
+    "src": "assets/backgrounds/living-room-base-v1.png"
+  },
+  "furniture": [
+    {
+      "id": "sofa-main",
+      "src": "assets/furniture/sofa-main-v1.png",
+      "draggable": false,
+      "interactive": false,
+      "anchor": "floor"
+    },
+    {
+      "id": "tv-body",
+      "src": "assets/furniture/tv-body-v1.png",
+      "draggable": false,
+      "interactive": true,
+      "interactionKind": "tv",
+      "anchor": "floor"
+    },
+    {
+      "id": "pullup-bar",
+      "src": "assets/furniture/pullup-bar-v1.png",
+      "draggable": false,
+      "interactive": true,
+      "interactionKind": "pullup-bar",
+      "anchor": "floor"
+    },
+    {
+      "id": "coffee-table",
+      "src": "assets/furniture/coffee-table-v1.png",
+      "draggable": false,
+      "interactive": false,
+      "anchor": "floor"
+    },
+    {
+      "id": "letter-board",
+      "src": "assets/furniture/letter-board-v1.png",
+      "draggable": false,
+      "interactive": true,
+      "interactionKind": "letters",
+      "anchor": "wall"
+    }
+  ],
+  "props": [
+    {
+      "id": "snack-bag",
+      "src": "assets/props/snack-bag-v1.png",
+      "draggable": true,
+      "interactive": false,
+      "anchor": "floor"
+    },
+    {
+      "id": "water-cup",
+      "src": "assets/props/water-cup-v1.png",
+      "draggable": true,
+      "interactive": false,
+      "anchor": "floor"
+    }
+  ],
+  "states": [
+    {
+      "id": "letter-closed",
+      "src": "assets/states/letter-closed-v1.png"
+    },
+    {
+      "id": "letter-open",
+      "src": "assets/states/letter-open-v1.png"
+    },
+    {
+      "id": "tv-screen-off",
+      "src": "assets/states/tv-screen-off-v1.png"
+    },
+    {
+      "id": "tv-screen-on",
+      "src": "assets/states/tv-screen-on-v1.png"
+    }
+  ],
+  "avatars": [
+    {
+      "id": "avatar-sit-together",
+      "src": "assets/avatars/avatar-sit-together-v1.png",
+      "state": "sit_together"
+    },
+    {
+      "id": "avatar-watch-tv",
+      "src": "assets/avatars/avatar-watch-tv-v1.png",
+      "state": "watch_tv"
+    },
+    {
+      "id": "avatar-pullup-01",
+      "src": "assets/avatars/avatar-pullup-01-v1.png",
+      "state": "do_pullup",
+      "frame": 1
+    },
+    {
+      "id": "avatar-pullup-02",
+      "src": "assets/avatars/avatar-pullup-02-v1.png",
+      "state": "do_pullup",
+      "frame": 2
+    },
+    {
+      "id": "avatar-read-letter",
+      "src": "assets/avatars/avatar-read-letter-v1.png",
+      "state": "read_letter"
+    }
+  ]
+}
