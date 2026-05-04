@@ -1,5 +1,10 @@
 {
   "sceneId": "living-room-v1",
+  "stage": {
+    "width": 1280,
+    "height": 720,
+    "gridSize": 24
+  },
   "background": {
     "id": "living-room-base",
     "src": "assets/backgrounds/living-room-base-v1.png"
@@ -8,6 +13,10 @@
     {
       "id": "sofa-main",
       "src": "assets/furniture/sofa-main-v1.png",
+      "x": 400,
+      "y": 398,
+      "width": 470,
+      "z": 30,
       "draggable": false,
       "interactive": false,
       "anchor": "floor"
@@ -15,6 +24,10 @@
     {
       "id": "tv-body",
       "src": "assets/furniture/tv-body-v1.png",
+      "x": 100,
+      "y": 200,
+      "width": 280,
+      "z": 24,
       "draggable": false,
       "interactive": true,
       "interactionKind": "tv",
@@ -23,6 +36,10 @@
     {
       "id": "pullup-bar",
       "src": "assets/furniture/pullup-bar-v1.png",
+      "x": 1035,
+      "y": 186,
+      "width": 170,
+      "z": 18,
       "draggable": false,
       "interactive": true,
       "interactionKind": "pullup-bar",
@@ -31,6 +48,10 @@
     {
       "id": "coffee-table",
       "src": "assets/furniture/coffee-table-v1.png",
+      "x": 480,
+      "y": 468,
+      "width": 260,
+      "z": 35,
       "draggable": false,
       "interactive": false,
       "anchor": "floor"
@@ -38,6 +59,10 @@
     {
       "id": "letter-board",
       "src": "assets/furniture/letter-board-v1.png",
+      "x": 810,
+      "y": 56,
+      "width": 290,
+      "z": 12,
       "draggable": false,
       "interactive": true,
       "interactionKind": "letters",
@@ -48,6 +73,10 @@
     {
       "id": "snack-bag",
       "src": "assets/props/snack-bag-v1.png",
+      "x": 545,
+      "y": 472,
+      "width": 72,
+      "z": 38,
       "draggable": true,
       "interactive": false,
       "anchor": "floor"
@@ -55,56 +84,106 @@
     {
       "id": "water-cup",
       "src": "assets/props/water-cup-v1.png",
+      "x": 640,
+      "y": 470,
+      "width": 48,
+      "z": 39,
       "draggable": true,
       "interactive": false,
       "anchor": "floor"
     }
   ],
+  "dragZones": [
+    {
+      "id": "tabletop",
+      "x": 500,
+      "y": 456,
+      "width": 250,
+      "height": 72,
+      "allowed": [
+        "snack-bag",
+        "water-cup"
+      ]
+    }
+  ],
   "states": [
     {
       "id": "letter-closed",
-      "src": "assets/states/letter-closed-v1.png"
+      "src": "assets/states/letter-closed-v1.png",
+      "x": 916,
+      "y": 116,
+      "width": 96,
+      "z": 14
     },
     {
       "id": "letter-open",
-      "src": "assets/states/letter-open-v1.png"
+      "src": "assets/states/letter-open-v1.png",
+      "width": 420
     },
     {
       "id": "tv-screen-off",
-      "src": "assets/states/tv-screen-off-v1.png"
+      "src": "assets/states/tv-screen-off-v1.png",
+      "x": 147,
+      "y": 242,
+      "width": 186,
+      "z": 25
     },
     {
       "id": "tv-screen-on",
-      "src": "assets/states/tv-screen-on-v1.png"
+      "src": "assets/states/tv-screen-on-v1.png",
+      "x": 147,
+      "y": 242,
+      "width": 186,
+      "z": 25
     }
   ],
   "avatars": [
     {
       "id": "avatar-sit-together",
       "src": "assets/avatars/avatar-sit-together-v1.png",
-      "state": "sit_together"
+      "state": "sit_together",
+      "x": 470,
+      "y": 318,
+      "width": 320,
+      "z": 33
     },
     {
       "id": "avatar-watch-tv",
       "src": "assets/avatars/avatar-watch-tv-v1.png",
-      "state": "watch_tv"
+      "state": "watch_tv",
+      "x": 470,
+      "y": 316,
+      "width": 320,
+      "z": 33
     },
     {
       "id": "avatar-pullup-01",
       "src": "assets/avatars/avatar-pullup-01-v1.png",
       "state": "do_pullup",
-      "frame": 1
+      "frame": 1,
+      "x": 980,
+      "y": 260,
+      "width": 120,
+      "z": 20
     },
     {
       "id": "avatar-pullup-02",
       "src": "assets/avatars/avatar-pullup-02-v1.png",
       "state": "do_pullup",
-      "frame": 2
+      "frame": 2,
+      "x": 984,
+      "y": 236,
+      "width": 112,
+      "z": 20
     },
     {
       "id": "avatar-read-letter",
       "src": "assets/avatars/avatar-read-letter-v1.png",
-      "state": "read_letter"
+      "state": "read_letter",
+      "x": 520,
+      "y": 300,
+      "width": 280,
+      "z": 33
     }
   ]
 }
