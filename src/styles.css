@@ -5,13 +5,10 @@
   --paper-strong: rgba(255, 250, 243, 0.96);
   --ink: #655049;
   --muted: #977d74;
-  --accent: #d69e93;
   --accent-soft: #ecd6c5;
-  --sage: #b6c9b3;
   --shadow: 0 22px 60px rgba(112, 84, 75, 0.16);
   --radius-xl: 30px;
   --radius-lg: 24px;
-  --radius-md: 18px;
 }
 
 * {
@@ -42,6 +39,10 @@ body::before {
 
 button {
   font: inherit;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 .page-shell {
@@ -106,101 +107,13 @@ button {
   position: relative;
   overflow: hidden;
   border-radius: calc(var(--radius-xl) - 6px);
-}
-
-.scene {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border-radius: calc(var(--radius-xl) - 8px);
   background: linear-gradient(180deg, #f6eadb 0%, #e8d9cb 100%);
 }
 
-.scene::after {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 36%),
-    radial-gradient(circle at center, rgba(255, 248, 237, 0.24), transparent 66%);
-  content: "";
-}
-
-.scene-item {
-  position: absolute;
-  user-select: none;
-  -webkit-user-drag: none;
-  transform-origin: top left;
-}
-
-.scene-item img {
+.scene-frame canvas {
   display: block;
   width: 100%;
   height: auto;
-  pointer-events: none;
-}
-
-.scene-item.is-interactive {
-  cursor: pointer;
-  transition:
-    transform 180ms ease,
-    filter 180ms ease;
-}
-
-.scene-item.is-interactive:hover {
-  transform: translateY(-4px);
-  filter: drop-shadow(0 10px 18px rgba(103, 76, 68, 0.18));
-}
-
-.scene-item.is-draggable {
-  cursor: grab;
-}
-
-.scene-item.is-dragging {
-  cursor: grabbing;
-  transition: none;
-  filter: drop-shadow(0 16px 24px rgba(93, 68, 61, 0.22));
-}
-
-.scene-item.item-tv-screen.is-on {
-  filter:
-    drop-shadow(0 0 10px rgba(255, 240, 190, 0.38))
-    drop-shadow(0 0 20px rgba(122, 156, 190, 0.24));
-}
-
-.scene-item.item-letter-closed {
-  cursor: pointer;
-}
-
-.scene.is-debug .scene-item {
-  outline: 1px dashed rgba(203, 120, 104, 0.55);
-}
-
-.scene.is-debug .scene-item::after {
-  position: absolute;
-  top: -18px;
-  left: 0;
-  padding: 3px 6px;
-  border-radius: 999px;
-  color: #6b5149;
-  background: rgba(255, 250, 243, 0.88);
-  font-size: 11px;
-  line-height: 1;
-  white-space: nowrap;
-  content: attr(data-id);
-}
-
-.scene.is-debug::before {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(to right, rgba(214, 158, 147, 0.18) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(214, 158, 147, 0.18) 1px, transparent 1px);
-  background-size: 48px 48px;
-  content: "";
-  z-index: 999;
 }
 
 .side-panel {
@@ -209,16 +122,14 @@ button {
 }
 
 .note-card,
-.control-card {
-  padding: 24px 22px;
-}
-
+.control-card,
 .validation-card {
   padding: 24px 22px;
 }
 
 .note-card h2,
 .control-card h2,
+.validation-card h2,
 .letter-copy h2 {
   margin: 0 0 10px;
   font-size: 1.44rem;
@@ -278,10 +189,6 @@ button {
   background: rgba(193, 220, 191, 0.9);
 }
 
-.validation-badge.is-warn {
-  background: rgba(240, 218, 173, 0.95);
-}
-
 .validation-badge.is-fail {
   background: rgba(234, 189, 182, 0.95);
 }
@@ -298,10 +205,6 @@ button {
   color: #6d936b;
 }
 
-.validation-item-warn::marker {
-  color: #b28b35;
-}
-
 .validation-item-fail::marker {
   color: #b95f57;
 }
@@ -315,10 +218,6 @@ button {
   background: rgba(103, 80, 72, 0.24);
 }
 
-.letter-overlay[hidden] {
-  display: none;
-}
-
 .letter-panel {
   display: grid;
   grid-template-columns: minmax(0, 0.92fr) minmax(250px, 0.82fr);
@@ -328,7 +227,7 @@ button {
   padding: 24px;
   border: 1px solid rgba(180, 148, 138, 0.22);
   border-radius: var(--radius-lg);
-  background: var(--paper-strong);
+  background: var(--paper);
   box-shadow: var(--shadow);
 }
 
@@ -343,8 +242,16 @@ button {
   margin-bottom: 14px;
 }
 
-.letter-copy {
-  align-self: stretch;
+.loading-copy,
+.error-shell {
+  display: grid;
+  place-items: center;
+  min-height: 360px;
+  line-height: 1.8;
+}
+
+.error-shell {
+  padding: 40px;
 }
 
 @media (max-width: 1080px) {

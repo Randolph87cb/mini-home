@@ -8,77 +8,9 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23f2e2d7'/%3E%3Cpath d='M18 35 32 22l14 13v11a2 2 0 0 1-2 2h-8V37H28v11h-8a2 2 0 0 1-2-2Z' fill='%23907066'/%3E%3C/svg%3E"
     />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="page-shell">
-      <header class="hero-copy">
-        <p class="eyebrow">our little room on the web</p>
-        <h1>线上小家</h1>
-        <p class="intro">
-          一个可以一起回来坐坐、摆一摆桌上的小东西、留下一点话的小客厅。
-        </p>
-      </header>
-
-      <main class="app-shell">
-        <section class="stage-card" aria-label="客厅主场景">
-          <div class="scene-frame">
-            <div class="scene" id="scene"></div>
-            <div class="letter-overlay" id="letter-overlay" hidden aria-hidden="true">
-              <div class="letter-panel">
-                <button class="overlay-close" id="close-letter" type="button">收起信件</button>
-                <img id="letter-open-image" alt="展开的信件" />
-                <div class="letter-copy">
-                  <p class="letter-kicker">信件板</p>
-                  <h2>留给你慢慢看的话</h2>
-                  <p id="letter-body">
-                    今天也想把一些没那么适合一句话说完的心情，安静地放在这里。
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <aside class="side-panel">
-          <section class="note-card">
-            <p class="card-kicker">当前互动</p>
-            <h2 id="note-title">回到客厅</h2>
-            <p id="note-body">
-              先从电视、单杠或信件板开始。桌上的零食和水杯可以拖一拖，看看这个小家慢慢有生活痕迹的样子。
-            </p>
-          </section>
-
-          <section class="control-card">
-            <p class="card-kicker">客厅状态</p>
-            <p id="status-line">你们现在坐在沙发上，她靠着你。</p>
-            <div class="control-actions">
-              <button id="reset-scene" type="button">回到沙发</button>
-              <button id="toggle-tv" type="button">切换电视</button>
-              <button id="toggle-debug" type="button">显示校验</button>
-            </div>
-          </section>
-
-          <section class="validation-card">
-            <div class="validation-header">
-              <div>
-                <p class="card-kicker">场景校验</p>
-                <h2 id="validation-title">等待检查</h2>
-              </div>
-              <span id="validation-badge" class="validation-badge">--</span>
-            </div>
-            <ul id="validation-list" class="validation-list"></ul>
-          </section>
-        </aside>
-      </main>
-    </div>
-
-    <script src="./app.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -4,7 +4,7 @@
 
 - 项目名称：`mini-home`
 - 当前目标：实现一个“双人共享线上小家”的网页初版。
-- 当前阶段：已完成首版静态场景骨架，能够渲染客厅、切换角色状态并承接电视 / 单杠 / 信件板基础互动。
+- 当前阶段：已切入 React + react-konva 最小场景原型，并补上页面内校验与自动场景冒烟验证。
 
 ## 当前目录结构
 
@@ -12,9 +12,12 @@
 mini-home/
 ├── AGENTS.md
 ├── README.md
+├── package.json
+├── package-lock.json
+├── vite.config.js
 ├── index.html
-├── styles.css
-├── app.js
+├── scripts/
+├── src/
 ├── AI工作记录/
 │   └── records/
 │       └── 2026/05/
@@ -26,7 +29,8 @@ mini-home/
 │   ├── states/
 │   └── scene-manifest-v1.json
 └── docs/
-    └── 首版美术素材清单与要求.md
+    ├── 首版美术素材清单与要求.md
+    └── 首版场景验证方案.md
 ```
 
 ## 目录职责说明
@@ -55,20 +59,34 @@ mini-home/
   - `docs/首版美术素材清单与要求.md`
   - `docs/首版场景验证方案.md`
 
+### `package.json` / `package-lock.json`
+
+- 管理当前前端原型依赖。
+- 当前关键依赖包括 `react`、`vite`、`konva`、`react-konva`。
+
+### `vite.config.js`
+
+- 当前前端开发与构建配置入口。
+- 负责在构建后把根目录 `assets/` 同步复制到 `dist/assets/`，保证预览和部署环境也能读取场景资源。
+
+### `src/`
+
+- 当前 React 场景原型代码目录。
+- 当前约定：
+  - `src/main.jsx`：React 入口。
+  - `src/App.jsx`：首版客厅场景原型。
+  - `src/styles.css`：React 原型样式。
+
+### `scripts/`
+
+- 存放仓库内的辅助验证脚本。
+- 当前约定：
+  - `scripts/verify-scene.mjs`：自动启动本地预览并跑首版客厅场景冒烟校验。
+
 ### `index.html`
 
-- 首版页面入口。
-- 承载场景容器、右侧说明区域和信件展开层。
-
-### `styles.css`
-
-- 存放首版页面和场景的视觉样式。
-- 负责整体氛围、布局、场景层叠和互动反馈样式。
-
-### `app.js`
-
-- 存放首版场景逻辑。
-- 负责读取 `assets/scene-manifest-v1.json`，渲染场景、切换角色状态、处理电视/单杠/信件板互动，以及桌面道具拖拽。
+- 当前 Vite 页面入口。
+- 挂载 React 根节点。
 
 ### `README.md`
 
@@ -111,9 +129,12 @@ mini-home/
 - 当前首版关键素材已经落入 `assets/`。
 - 当前可直接作为首版场景输入的资源清单在：
   - `assets/scene-manifest-v1.json`
-- 当前首版静态实现入口在：
+- 当前首版 React 原型入口在：
   - `index.html`
-  - `styles.css`
-  - `app.js`
+  - `src/main.jsx`
+  - `src/App.jsx`
+  - `src/styles.css`
+- 当前统一场景冒烟验证入口在：
+  - `npm run verify:scene`
 - 当前首版美术要求文档在：
   - `docs/首版美术素材清单与要求.md`
