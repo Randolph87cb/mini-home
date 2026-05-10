@@ -30,7 +30,8 @@ mini-home/
 │   └── scene-manifest-v1.json
 └── docs/
     ├── 首版美术素材清单与要求.md
-    └── 首版场景验证方案.md
+    ├── 首版场景验证方案.md
+    └── 首版前端架构说明.md
 ```
 
 ## 目录职责说明
@@ -58,6 +59,7 @@ mini-home/
 - 当前已有文档：
   - `docs/首版美术素材清单与要求.md`
   - `docs/首版场景验证方案.md`
+  - `docs/首版前端架构说明.md`
 
 ### `package.json` / `package-lock.json`
 
