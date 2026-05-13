@@ -47,6 +47,7 @@ npm run verify:scene
 更完整的工程说明见：
 
 - [首版前端架构说明.md](/D:/workspace/mini-home/docs/首版前端架构说明.md)
+- [项目现状.md](/D:/workspace/mini-home/docs/项目现状.md)
 
 ## 目录结构
 
@@ -70,6 +71,7 @@ mini-home/
 - `assets/`：运行时图片资源和 `scene-manifest-v1.json`。
 - `scripts/`：自动验证脚本。
 - `docs/`：架构、验证、美术规范等文档。
+- `docs/项目现状.md`：当前阶段、已验证内容、已知问题和接手建议。
 - `AI工作记录/`：项目内 AI 工作摘要记录。
 
 当前关键文件：
@@ -107,3 +109,4 @@ mini-home/
 
 - [首版场景验证方案.md](/D:/workspace/mini-home/docs/首版场景验证方案.md)
 - [首版前端架构说明.md](/D:/workspace/mini-home/docs/首版前端架构说明.md)
+- [项目现状.md](/D:/workspace/mini-home/docs/项目现状.md)

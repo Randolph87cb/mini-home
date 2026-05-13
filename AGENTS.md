@@ -31,7 +31,8 @@ mini-home/
 └── docs/
     ├── 首版美术素材清单与要求.md
     ├── 首版场景验证方案.md
-    └── 首版前端架构说明.md
+    ├── 首版前端架构说明.md
+    └── 项目现状.md
 ```
 
 ## 目录职责说明
@@ -60,6 +61,7 @@ mini-home/
   - `docs/首版美术素材清单与要求.md`
   - `docs/首版场景验证方案.md`
   - `docs/首版前端架构说明.md`
+  - `docs/项目现状.md`
 
 ### `package.json` / `package-lock.json`
 
