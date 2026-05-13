@@ -9,6 +9,7 @@ import { chromium } from "playwright";
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "..");
 const previewStartPort = 4173;
+const storageKey = "mini-home-home-data-v1";
 
 async function main() {
   const manifest = JSON.parse(
@@ -35,26 +36,45 @@ async function main() {
     });
 
     await page.goto(previewUrl, { waitUntil: "networkidle" });
+    await page.evaluate((key) => {
+      window.localStorage.removeItem(key);
+    }, storageKey);
+    await page.reload({ waitUntil: "networkidle" });
 
     await ensureValidationPass(page, "默认场景");
     console.log("default scene passed");
 
     await triggerInteraction(page, "tv");
     await expectNoteTitle(page, "电视");
+    const quickNoteBody = `验证便签 ${Date.now()}`;
+    await page.getByLabel("写一句留在这里的话").fill(quickNoteBody);
+    await page.getByRole("button", { name: "保存便签" }).click();
+    await expectVisibleText(page, quickNoteBody, "电视便签当前页回显");
     await ensureValidationPass(page, "电视态");
     console.log("tv interaction passed");
-
-    await page.getByRole("button", { name: "回到沙发" }).click();
-    await ensureValidationPass(page, "回到沙发");
 
     await triggerInteraction(page, "letters");
     await expectNoteTitle(page, "信件板");
     await page.locator(".letter-overlay").waitFor({ state: "visible" });
+    const letterTitle = `验证信件 ${Date.now()}`;
+    const letterBody = "这是一封用于自动验证的长信，保存后应该在关闭、再次打开和刷新后都还能看到。";
+    await page.getByRole("button", { name: "写新信" }).click();
+    await page.getByLabel("信的标题").fill(letterTitle);
+    await page.getByLabel("想慢慢留给对方的话").fill(letterBody);
+    await page.getByRole("button", { name: "保存这封信" }).click();
+    await expectInputValue(page, "信的标题", letterTitle, "信件标题当前页回显");
+    await expectInputValue(page, "想慢慢留给对方的话", letterBody, "信件正文当前页回显");
     await ensureValidationPass(page, "信件态");
     console.log("letters interaction passed");
 
     await page.getByRole("button", { name: "收起信件" }).click();
     await page.locator(".letter-overlay").waitFor({ state: "hidden" });
+    await triggerInteraction(page, "tv");
+    await expectVisibleText(page, quickNoteBody, "切场景后电视便签仍在");
+    await triggerInteraction(page, "letters");
+    await page.locator(".letter-overlay").waitFor({ state: "visible" });
+    await expectInputValue(page, "信的标题", letterTitle, "重新打开后的信件标题");
+    await expectInputValue(page, "想慢慢留给对方的话", letterBody, "重新打开后的信件正文");
     await ensureValidationPass(page, "收起信件后");
 
     await triggerInteraction(page, "pullup-bar");
@@ -67,6 +87,15 @@ async function main() {
     await dragProp(page, manifest, "water-cup", -24, 0);
     await ensureValidationPass(page, "拖拽后");
     console.log("drag interaction passed");
+
+    await page.reload({ waitUntil: "networkidle" });
+    await ensureValidationPass(page, "刷新后默认场景");
+    await triggerInteraction(page, "tv");
+    await expectVisibleText(page, quickNoteBody, "刷新后电视便签仍在");
+    await triggerInteraction(page, "letters");
+    await page.locator(".letter-overlay").waitFor({ state: "visible" });
+    await expectInputValue(page, "信的标题", letterTitle, "刷新后信件标题");
+    await expectInputValue(page, "想慢慢留给对方的话", letterBody, "刷新后信件正文");
 
     if (consoleErrors.length > 0) {
       throw new Error(
@@ -184,6 +213,25 @@ async function expectNoteTitle(page, title) {
 
   const text = (await heading.textContent())?.trim();
   throw new Error(`互动标题不对，预期“${title}”，实际“${text ?? "空"}”。`);
+}
+
+async function expectVisibleText(page, text, stepName) {
+  const locator = page.getByText(text, { exact: true }).first();
+  await locator.waitFor({ state: "visible" });
+  const content = await locator.textContent();
+  if (!content?.includes(text)) {
+    throw new Error(`${stepName} 失败，页面没有看到预期文本：${text}`);
+  }
+}
+
+async function expectInputValue(page, label, expectedValue, stepName) {
+  const control = page.getByLabel(label);
+  await control.waitFor({ state: "visible" });
+  const value = await control.inputValue();
+
+  if (value !== expectedValue) {
+    throw new Error(`${stepName} 失败，预期“${expectedValue}”，实际“${value}”。`);
+  }
 }
 
 async function clickSceneItem(page, manifest, itemId) {

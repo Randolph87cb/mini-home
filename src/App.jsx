@@ -3,6 +3,13 @@ import { LetterOverlay } from "./components/LetterOverlay";
 import { SceneStage } from "./components/SceneStage";
 import { SidePanel } from "./components/SidePanel";
 import { useAssetImages } from "./hooks/useAssetImages";
+import { usePersistentHomeData } from "./hooks/usePersistentHomeData";
+import {
+  createEmptyLetterDraft,
+  createEntryId,
+  QUICK_NOTE_TARGETS,
+  sortLettersByUpdatedAt,
+} from "./homeData";
 import { noteCopy } from "./noteCopy";
 import { clampToZone, getRenderedSize } from "./scene/sceneMath";
 import { buildValidationState } from "./scene/validation";
@@ -17,9 +24,14 @@ function App() {
   const [debugVisible, setDebugVisible] = useState(false);
   const [letterOpen, setLetterOpen] = useState(false);
   const [pullupFrameIndex, setPullupFrameIndex] = useState(0);
-  const [propPositions, setPropPositions] = useState({});
   const [frameWidth, setFrameWidth] = useState(0);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [noteAuthorId, setNoteAuthorId] = useState("you");
+  const [activeLetterId, setActiveLetterId] = useState(null);
+  const [isCreatingLetter, setIsCreatingLetter] = useState(false);
+  const [letterDraft, setLetterDraft] = useState(createEmptyLetterDraft());
   const sceneFrameRef = useRef(null);
+  const { homeData, setHomeData, resetHomeData } = usePersistentHomeData(manifest);
 
   useEffect(() => {
     let disposed = false;
@@ -38,7 +50,6 @@ function App() {
         }
 
         setManifest(data);
-        setPropPositions(createInitialPropPositions(data));
       })
       .catch((error) => {
         console.error(error);
@@ -84,8 +95,18 @@ function App() {
   }, [currentMode]);
 
   const assetImages = useAssetImages(manifest);
+  const propPositions = homeData?.propPositions ?? {};
   const stageScale = manifest && frameWidth ? frameWidth / manifest.stage.width : 1;
   const currentCopy = noteCopy[currentMode] ?? noteCopy.idle;
+  const activeQuickNoteConfig = QUICK_NOTE_TARGETS[currentMode] ?? null;
+  const quickNotes = activeQuickNoteConfig
+    ? homeData?.shortNotesByTarget?.[activeQuickNoteConfig.targetId] ?? []
+    : [];
+  const sortedLetters = useMemo(() => sortLettersByUpdatedAt(homeData?.letters ?? []), [homeData]);
+  const latestLetter = sortedLetters[0] ?? null;
+  const totalNoteCount = useMemo(() => {
+    return Object.values(homeData?.shortNotesByTarget ?? {}).reduce((count, notes) => count + notes.length, 0);
+  }, [homeData]);
 
   const activeAvatar = useMemo(() => {
     if (!manifest) {
@@ -174,15 +195,10 @@ function App() {
   };
 
   const resetScene = () => {
-    if (!manifest) {
-      return;
-    }
-
     setCurrentMode("idle");
     setTvOn(false);
     setLetterOpen(false);
     setPullupFrameIndex(0);
-    setPropPositions(createInitialPropPositions(manifest));
   };
 
   const handleToggleTv = () => {
@@ -192,7 +208,7 @@ function App() {
   };
 
   const handlePropDragEnd = (item, event) => {
-    if (!manifest) {
+    if (!manifest || !homeData) {
       return;
     }
 
@@ -213,10 +229,191 @@ function App() {
       manifest.stage.gridSize
     );
 
-    setPropPositions((current) => ({
+    setHomeData((current) => ({
       ...current,
-      [item.id]: clamped,
+      updatedAt: new Date().toISOString(),
+      propPositions: {
+        ...current.propPositions,
+        [item.id]: clamped,
+      },
     }));
+  };
+
+  const handleOpenLetters = () => {
+    setCurrentMode("letters");
+    setTvOn(false);
+    setLetterOpen(true);
+  };
+
+  const handleSaveNote = () => {
+    if (!activeQuickNoteConfig || !homeData) {
+      return;
+    }
+
+    const body = noteDraft.trim();
+    if (!body) {
+      return;
+    }
+
+    const nextNote = {
+      id: createEntryId("note"),
+      authorId: noteAuthorId,
+      body,
+      createdAt: new Date().toISOString(),
+    };
+
+    setHomeData((current) => ({
+      ...current,
+      updatedAt: nextNote.createdAt,
+      shortNotesByTarget: {
+        ...current.shortNotesByTarget,
+        [activeQuickNoteConfig.targetId]: [nextNote, ...(current.shortNotesByTarget[activeQuickNoteConfig.targetId] ?? [])].slice(0, 8),
+      },
+    }));
+    setNoteDraft("");
+  };
+
+  const handleRemoveNote = (noteId) => {
+    if (!activeQuickNoteConfig || !homeData) {
+      return;
+    }
+
+    setHomeData((current) => ({
+      ...current,
+      updatedAt: new Date().toISOString(),
+      shortNotesByTarget: {
+        ...current.shortNotesByTarget,
+        [activeQuickNoteConfig.targetId]: (current.shortNotesByTarget[activeQuickNoteConfig.targetId] ?? []).filter((item) => item.id !== noteId),
+      },
+    }));
+  };
+
+  const handleCreateLetter = () => {
+    setIsCreatingLetter(true);
+    setActiveLetterId(null);
+    setLetterDraft(createEmptyLetterDraft(letterDraft.authorId));
+  };
+
+  const handleSaveLetter = () => {
+    if (!homeData) {
+      return;
+    }
+
+    const title = letterDraft.title.trim();
+    const body = letterDraft.body.trim();
+    if (!title || !body) {
+      return;
+    }
+
+    const now = new Date().toISOString();
+
+    if (activeLetterId && !isCreatingLetter) {
+      setHomeData((current) => ({
+        ...current,
+        updatedAt: now,
+        letters: current.letters.map((item) =>
+          item.id === activeLetterId
+            ? {
+                ...item,
+                title,
+                body,
+                authorId: letterDraft.authorId,
+                updatedAt: now,
+              }
+            : item
+        ),
+      }));
+      return;
+    }
+
+    const nextLetterId = createEntryId("letter");
+    setIsCreatingLetter(false);
+    setHomeData((current) => ({
+      ...current,
+      updatedAt: now,
+      letters: [
+        {
+          id: nextLetterId,
+          title,
+          body,
+          authorId: letterDraft.authorId,
+          createdAt: now,
+          updatedAt: now,
+        },
+        ...current.letters,
+      ],
+    }));
+    setActiveLetterId(nextLetterId);
+  };
+
+  const handleDeleteLetter = (letterId) => {
+    if (!homeData) {
+      return;
+    }
+
+    const remaining = homeData.letters.filter((item) => item.id !== letterId);
+    setHomeData((current) => ({
+      ...current,
+      updatedAt: new Date().toISOString(),
+      letters: remaining,
+    }));
+
+    if (activeLetterId === letterId) {
+      const nextLetter = sortLettersByUpdatedAt(remaining)[0] ?? null;
+      setIsCreatingLetter(!nextLetter);
+      setActiveLetterId(nextLetter?.id ?? null);
+      setLetterDraft(
+        nextLetter
+          ? {
+              title: nextLetter.title,
+              body: nextLetter.body,
+              authorId: nextLetter.authorId,
+            }
+          : createEmptyLetterDraft(letterDraft.authorId)
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (!letterOpen) {
+      return;
+    }
+
+    if (sortedLetters.length === 0) {
+      setIsCreatingLetter(true);
+      setActiveLetterId(null);
+      setLetterDraft(createEmptyLetterDraft(letterDraft.authorId));
+      return;
+    }
+
+    if (isCreatingLetter) {
+      return;
+    }
+
+    if (!activeLetterId || !sortedLetters.some((item) => item.id === activeLetterId)) {
+      const latest = sortedLetters[0];
+      setActiveLetterId(latest.id);
+      setLetterDraft({
+        title: latest.title,
+        body: latest.body,
+        authorId: latest.authorId,
+      });
+    }
+  }, [activeLetterId, isCreatingLetter, letterDraft.authorId, letterOpen, sortedLetters]);
+
+  const handleSelectLetter = (letterId) => {
+    const nextLetter = sortedLetters.find((item) => item.id === letterId);
+    if (!nextLetter) {
+      return;
+    }
+
+    setIsCreatingLetter(false);
+    setActiveLetterId(letterId);
+    setLetterDraft({
+      title: nextLetter.title,
+      body: nextLetter.body,
+      authorId: nextLetter.authorId,
+    });
   };
 
   useEffect(() => {
@@ -229,12 +426,14 @@ function App() {
         letterOpen,
         pullupFrameIndex,
       }),
+      getHomeData: () => homeData,
+      resetHomeData,
     };
 
     return () => {
       delete window.__miniHomeTestApi;
     };
-  }, [currentMode, letterOpen, pullupFrameIndex, tvOn, manifest]);
+  }, [currentMode, homeData, letterOpen, pullupFrameIndex, resetHomeData, tvOn]);
 
   if (loadError) {
     return <div className="error-shell">{loadError}</div>;
@@ -263,26 +462,53 @@ function App() {
             <LetterOverlay
               manifest={manifest}
               open={letterOpen}
+              letters={sortedLetters}
+              activeLetterId={activeLetterId}
+              isCreatingLetter={isCreatingLetter}
+              letterDraft={letterDraft}
               onClose={() => setLetterOpen(false)}
+              onSelectLetter={handleSelectLetter}
+              onCreateLetter={handleCreateLetter}
+              onDraftChange={setLetterDraft}
+              onSaveLetter={handleSaveLetter}
+              onDeleteLetter={handleDeleteLetter}
             />
           </div>
         </section>
 
         <SidePanel
           currentCopy={currentCopy}
+          currentMode={currentMode}
           validation={validation}
           debugVisible={debugVisible}
+          quickNotes={quickNotes}
+          totalNoteCount={totalNoteCount}
+          totalLetterCount={sortedLetters.length}
+          latestLetter={latestLetter}
+          homeUpdatedAt={homeData?.updatedAt ?? null}
+          noteDraft={noteDraft}
+          noteAuthorId={noteAuthorId}
           onResetScene={resetScene}
           onToggleTv={handleToggleTv}
           onToggleDebug={() => setDebugVisible((value) => !value)}
+          onOpenLetters={handleOpenLetters}
+          onNoteDraftChange={setNoteDraft}
+          onNoteAuthorChange={setNoteAuthorId}
+          onSaveNote={handleSaveNote}
+          onRemoveNote={handleRemoveNote}
+          onResetHomeData={() => {
+            resetHomeData();
+            resetScene();
+            setIsCreatingLetter(false);
+            setActiveLetterId(null);
+            setLetterDraft(createEmptyLetterDraft());
+            setNoteDraft("");
+            setNoteAuthorId("you");
+          }}
         />
       </main>
     </div>
   );
-}
-
-function createInitialPropPositions(manifest) {
-  return Object.fromEntries(manifest.props.map((item) => [item.id, { x: item.x, y: item.y }]));
 }
 
 export default App;

@@ -4,7 +4,7 @@
 
 - 项目名称：`mini-home`
 - 当前目标：实现一个“双人共享线上小家”的网页初版。
-- 当前阶段：已切入 React + react-konva 最小场景原型，并补上页面内校验与自动场景冒烟验证。
+- 当前阶段：已切入 React + react-konva 原型，并补上本地留言/长信持久化、页面内校验与自动场景冒烟验证。
 
 ## 当前目录结构
 
@@ -81,8 +81,9 @@ mini-home/
   - `src/App.jsx`：页面状态编排和首版客厅主入口。
   - `src/styles.css`：React 原型样式。
   - `src/components/`：场景舞台、信件浮层、右侧面板等页面组件。
-  - `src/hooks/`：资源加载等复用 hook。
+  - `src/hooks/`：资源加载、本地持久化等复用 hook。
   - `src/scene/`：场景尺寸计算、拖拽落点和页面内校验逻辑。
+  - `src/homeData.js`：本地可用版数据模型、默认数据和本地存储辅助函数。
   - `src/noteCopy.js`：首版互动说明文案。
 
 ### `scripts/`
@@ -146,8 +147,14 @@ mini-home/
   - `src/components/`
   - `src/hooks/`
   - `src/scene/`
+  - `src/homeData.js`
   - `src/noteCopy.js`
 - 当前统一场景冒烟验证入口在：
   - `npm run verify:scene`
+- 当前本地可用能力包括：
+  - 电视 / 单杠短便签
+  - 信件板长信编辑与历史列表
+  - 本地持久化保存
+  - 道具位置跨刷新保留
 - 当前首版美术要求文档在：
   - `docs/首版美术素材清单与要求.md`
