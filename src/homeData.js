@@ -22,6 +22,74 @@ export const QUICK_NOTE_TARGETS = {
   },
 };
 
+export const SCENE_ITEM_META = {
+  "sofa-main": {
+    label: "沙发",
+    description: "现在主要是角色坐姿和客厅中心关系的锚点。",
+    layoutEditable: true,
+  },
+  "tv-body": {
+    label: "电视",
+    description: "点击可以看电视旁的便签，也可以在编辑模式里调整位置。",
+    layoutEditable: true,
+  },
+  "pullup-bar": {
+    label: "单杠",
+    description: "点击可以看单杠旁的便签，也可以在编辑模式里调整位置。",
+    layoutEditable: true,
+  },
+  "coffee-table": {
+    label: "茶几",
+    description: "茶几位置会影响零食和水杯的拖拽有效区域。",
+    layoutEditable: true,
+  },
+  "letter-board": {
+    label: "信件板",
+    description: "点击会打开长信列表与编辑区。",
+    layoutEditable: true,
+  },
+  "snack-bag": {
+    label: "零食",
+    description: "当前不承载留言，但会跟着茶几一起决定桌面气氛。",
+    layoutEditable: true,
+  },
+  "water-cup": {
+    label: "水杯",
+    description: "当前不承载留言，但会保留拖动后的位置。",
+    layoutEditable: true,
+  },
+  "avatar-sit-together": {
+    label: "双人坐姿",
+    description: "默认客厅状态下的角色位置。",
+    layoutEditable: true,
+  },
+  "avatar-watch-tv": {
+    label: "看电视坐姿",
+    description: "看电视时的角色位置。",
+    layoutEditable: true,
+  },
+  "avatar-read-letter": {
+    label: "读信姿态",
+    description: "读信时的角色位置。",
+    layoutEditable: true,
+  },
+  "avatar-pullup-01": {
+    label: "引体帧 1",
+    description: "引体动画的第一帧位置。",
+    layoutEditable: true,
+  },
+  "avatar-pullup-02": {
+    label: "引体帧 2",
+    description: "引体动画的第二帧位置。",
+    layoutEditable: true,
+  },
+};
+
+export const NOTE_TARGET_BY_ITEM_ID = {
+  "tv-body": QUICK_NOTE_TARGETS.tv,
+  "pullup-bar": QUICK_NOTE_TARGETS.pullup,
+};
+
 const defaultUpdatedAt = "2026-05-13T21:20:00+08:00";
 
 export function createInitialPropPositions(manifest) {
@@ -33,6 +101,7 @@ export function createDefaultHomeData(manifest) {
     version: 1,
     updatedAt: defaultUpdatedAt,
     propPositions: createInitialPropPositions(manifest),
+    layoutOverrides: {},
     shortNotesByTarget: {
       "tv-body": [
         {
@@ -109,6 +178,14 @@ export function getOccupantLabel(authorId) {
   return OCCUPANTS.find((item) => item.id === authorId)?.label ?? "你们";
 }
 
+export function getSceneItemMeta(itemId) {
+  return SCENE_ITEM_META[itemId] ?? {
+    label: itemId,
+    description: "这个物件当前还没有额外说明。",
+    layoutEditable: false,
+  };
+}
+
 export function createEmptyLetterDraft(authorId = "you") {
   return {
     title: "",
@@ -131,6 +208,10 @@ export function createEntryId(prefix) {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 }
 
+export function isSceneItemLayoutEditable(itemId) {
+  return Boolean(getSceneItemMeta(itemId).layoutEditable);
+}
+
 function normalizeHomeData(rawData, manifest, fallback) {
   const shortNotesByTarget = {
     "tv-body": normalizeNotes(rawData?.shortNotesByTarget?.["tv-body"]),
@@ -141,9 +222,22 @@ function normalizeHomeData(rawData, manifest, fallback) {
     version: 1,
     updatedAt: rawData?.updatedAt ?? fallback.updatedAt,
     propPositions: normalizePropPositions(rawData?.propPositions, manifest, fallback.propPositions),
+    layoutOverrides: normalizeLayoutOverrides(rawData?.layoutOverrides),
     shortNotesByTarget,
     letters: normalizeLetters(rawData?.letters, fallback.letters),
   };
+}
+
+function normalizeLayoutOverrides(layoutOverrides) {
+  if (!layoutOverrides || typeof layoutOverrides !== "object") {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(layoutOverrides).filter(([, value]) => {
+      return typeof value?.x === "number" && typeof value?.y === "number";
+    })
+  );
 }
 
 function normalizePropPositions(savedPositions, manifest, fallbackPositions) {

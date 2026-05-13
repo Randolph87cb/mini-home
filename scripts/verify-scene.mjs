@@ -88,8 +88,24 @@ async function main() {
     await ensureValidationPass(page, "拖拽后");
     console.log("drag interaction passed");
 
+    await page.getByRole("button", { name: "编辑布局" }).click();
+    await page.evaluate(() => {
+      window.__miniHomeTestApi.setEditMode(true);
+      window.__miniHomeTestApi.setLayoutOverride("tv-body", { x: 164, y: 260 });
+    });
+    await page.waitForTimeout(250);
+    const editedTvPosition = await page.evaluate(() => window.__miniHomeTestApi.getHomeData()?.layoutOverrides?.["tv-body"]);
+    if (!editedTvPosition || typeof editedTvPosition.x !== "number" || typeof editedTvPosition.y !== "number") {
+      throw new Error("编辑模式下没有保存电视的新位置。");
+    }
+    await page.getByRole("button", { name: "退出编辑" }).click();
+
     await page.reload({ waitUntil: "networkidle" });
     await ensureValidationPass(page, "刷新后默认场景");
+    const persistedTvPosition = await page.evaluate(() => window.__miniHomeTestApi.getHomeData()?.layoutOverrides?.["tv-body"]);
+    if (!persistedTvPosition || persistedTvPosition.x !== editedTvPosition.x || persistedTvPosition.y !== editedTvPosition.y) {
+      throw new Error("刷新后电视布局没有保持编辑结果。");
+    }
     await triggerInteraction(page, "tv");
     await expectVisibleText(page, quickNoteBody, "刷新后电视便签仍在");
     await triggerInteraction(page, "letters");

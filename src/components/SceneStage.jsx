@@ -4,12 +4,17 @@ import { SceneNode } from "./SceneNode";
 
 export function SceneStage({
   manifest,
+  stageWidth,
+  stageHeight,
   stageScale,
   sortedSceneItems,
   assetImageMap,
   debugVisible,
+  editMode,
+  selectedItemId,
   onInteract,
   onPropDragEnd,
+  onLayoutDragEnd,
 }) {
   if (!manifest) {
     return <div className="loading-copy">正在加载场景资源…</div>;
@@ -17,8 +22,8 @@ export function SceneStage({
 
   return (
     <Stage
-      width={manifest.stage.width}
-      height={manifest.stage.height}
+      width={stageWidth}
+      height={stageHeight}
       scaleX={stageScale}
       scaleY={stageScale}
     >
@@ -30,8 +35,11 @@ export function SceneStage({
             item={item}
             image={assetImageMap[item.id]}
             debugVisible={debugVisible}
+            editMode={editMode}
+            isSelected={selectedItemId === item.id}
             onInteract={onInteract}
             onPropDragEnd={onPropDragEnd}
+            onLayoutDragEnd={onLayoutDragEnd}
           />
         ))}
       </Layer>

@@ -7,6 +7,10 @@ import { usePersistentHomeData } from "./hooks/usePersistentHomeData";
 import {
   createEmptyLetterDraft,
   createEntryId,
+  createInitialPropPositions,
+  getSceneItemMeta,
+  isSceneItemLayoutEditable,
+  NOTE_TARGET_BY_ITEM_ID,
   QUICK_NOTE_TARGETS,
   sortLettersByUpdatedAt,
 } from "./homeData";
@@ -22,11 +26,13 @@ function App() {
   const [currentMode, setCurrentMode] = useState("idle");
   const [tvOn, setTvOn] = useState(false);
   const [debugVisible, setDebugVisible] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [letterOpen, setLetterOpen] = useState(false);
   const [pullupFrameIndex, setPullupFrameIndex] = useState(0);
   const [frameWidth, setFrameWidth] = useState(0);
   const [noteDraft, setNoteDraft] = useState("");
   const [noteAuthorId, setNoteAuthorId] = useState("you");
+  const [selectedItemId, setSelectedItemId] = useState(null);
   const [activeLetterId, setActiveLetterId] = useState(null);
   const [isCreatingLetter, setIsCreatingLetter] = useState(false);
   const [letterDraft, setLetterDraft] = useState(createEmptyLetterDraft());
@@ -96,9 +102,13 @@ function App() {
 
   const assetImages = useAssetImages(manifest);
   const propPositions = homeData?.propPositions ?? {};
+  const layoutOverrides = homeData?.layoutOverrides ?? {};
   const stageScale = manifest && frameWidth ? frameWidth / manifest.stage.width : 1;
+  const stageWidth = manifest && frameWidth ? frameWidth : manifest?.stage.width ?? 1280;
+  const stageHeight = manifest ? Math.round(manifest.stage.height * stageScale) : 720;
   const currentCopy = noteCopy[currentMode] ?? noteCopy.idle;
-  const activeQuickNoteConfig = QUICK_NOTE_TARGETS[currentMode] ?? null;
+  const activeQuickNoteConfig =
+    (selectedItemId ? NOTE_TARGET_BY_ITEM_ID[selectedItemId] : null) ?? QUICK_NOTE_TARGETS[currentMode] ?? null;
   const quickNotes = activeQuickNoteConfig
     ? homeData?.shortNotesByTarget?.[activeQuickNoteConfig.targetId] ?? []
     : [];
@@ -107,6 +117,7 @@ function App() {
   const totalNoteCount = useMemo(() => {
     return Object.values(homeData?.shortNotesByTarget ?? {}).reduce((count, notes) => count + notes.length, 0);
   }, [homeData]);
+  const selectedItemMeta = selectedItemId ? getSceneItemMeta(selectedItemId) : null;
 
   const activeAvatar = useMemo(() => {
     if (!manifest) {
@@ -155,8 +166,14 @@ function App() {
       { ...activeAvatar, kind: "avatar" },
     ];
 
-    return items.sort((left, right) => left.z - right.z);
-  }, [activeAvatar, manifest, propPositions, tvState]);
+    return items
+      .map((item) => applySceneLayout(item, layoutOverrides, manifest))
+      .map((item) => ({
+        ...item,
+        layoutEditable: item.kind !== "background" && item.kind !== "state" && isSceneItemLayoutEditable(item.id),
+      }))
+      .sort((left, right) => left.z - right.z);
+  }, [activeAvatar, layoutOverrides, manifest, propPositions, tvState]);
 
   const validation = useMemo(() => {
     if (!manifest || !assetImages.ready) {
@@ -166,17 +183,20 @@ function App() {
     return buildValidationState({
       manifest,
       propPositions,
+      layoutOverrides,
       currentMode,
       pullupFrameIndex,
       assetImages,
+      editMode,
     });
-  }, [assetImages, currentMode, manifest, propPositions, pullupFrameIndex]);
+  }, [assetImages, currentMode, editMode, layoutOverrides, manifest, propPositions, pullupFrameIndex]);
 
   const handleSceneInteraction = (kind) => {
     if (kind === "tv") {
       setLetterOpen(false);
       setCurrentMode("tv");
       setTvOn(true);
+      setSelectedItemId("tv-body");
       return;
     }
 
@@ -184,6 +204,7 @@ function App() {
       setLetterOpen(false);
       setCurrentMode("pullup");
       setTvOn(false);
+      setSelectedItemId("pullup-bar");
       return;
     }
 
@@ -191,6 +212,7 @@ function App() {
       setCurrentMode("letters");
       setTvOn(false);
       setLetterOpen(true);
+      setSelectedItemId("letter-board");
     }
   };
 
@@ -199,12 +221,14 @@ function App() {
     setTvOn(false);
     setLetterOpen(false);
     setPullupFrameIndex(0);
+    setSelectedItemId(null);
   };
 
   const handleToggleTv = () => {
     setLetterOpen(false);
     setCurrentMode("tv");
     setTvOn((value) => !value);
+    setSelectedItemId("tv-body");
   };
 
   const handlePropDragEnd = (item, event) => {
@@ -212,7 +236,7 @@ function App() {
       return;
     }
 
-    const zone = manifest.dragZones.find((entry) => entry.allowed.includes(item.id));
+    const zone = getDynamicDragZone(manifest, layoutOverrides, item.id);
     if (!zone) {
       return;
     }
@@ -239,10 +263,44 @@ function App() {
     }));
   };
 
+  const handleLayoutDragEnd = (item, event) => {
+    if (!homeData || !manifest || !item.layoutEditable) {
+      return;
+    }
+
+    const node = event.target;
+    const nextPosition = {
+      x: Math.round(node.x()),
+      y: Math.round(node.y()),
+    };
+
+    setHomeData((current) => ({
+      ...current,
+      updatedAt: new Date().toISOString(),
+      layoutOverrides: {
+        ...current.layoutOverrides,
+        [item.id]: nextPosition,
+      },
+    }));
+  };
+
+  const handleSceneItemClick = (item) => {
+    setSelectedItemId(item.id);
+
+    if (editMode) {
+      return;
+    }
+
+    if (item.interactionKind) {
+      handleSceneInteraction(item.interactionKind);
+    }
+  };
+
   const handleOpenLetters = () => {
     setCurrentMode("letters");
     setTvOn(false);
     setLetterOpen(true);
+    setSelectedItemId("letter-board");
   };
 
   const handleSaveNote = () => {
@@ -418,13 +476,30 @@ function App() {
 
   useEffect(() => {
     window.__miniHomeTestApi = {
-      triggerInteraction: handleSceneInteraction,
+      triggerInteraction: (kind) => {
+        handleSceneInteraction(kind);
+      },
+      setEditMode: (nextValue) => {
+        setEditMode(Boolean(nextValue));
+      },
+      setLayoutOverride: (itemId, nextPosition) => {
+        setHomeData((current) => ({
+          ...current,
+          updatedAt: new Date().toISOString(),
+          layoutOverrides: {
+            ...current.layoutOverrides,
+            [itemId]: nextPosition,
+          },
+        }));
+      },
       resetScene,
       getState: () => ({
         currentMode,
         tvOn,
         letterOpen,
         pullupFrameIndex,
+        editMode,
+        selectedItemId,
       }),
       getHomeData: () => homeData,
       resetHomeData,
@@ -433,7 +508,7 @@ function App() {
     return () => {
       delete window.__miniHomeTestApi;
     };
-  }, [currentMode, homeData, letterOpen, pullupFrameIndex, resetHomeData, tvOn]);
+  }, [currentMode, editMode, homeData, letterOpen, pullupFrameIndex, resetHomeData, selectedItemId, setHomeData, tvOn]);
 
   if (loadError) {
     return <div className="error-shell">{loadError}</div>;
@@ -452,12 +527,17 @@ function App() {
           <div className="scene-frame" ref={sceneFrameRef}>
             <SceneStage
               manifest={manifest}
+              stageWidth={stageWidth}
+              stageHeight={stageHeight}
               stageScale={stageScale}
               sortedSceneItems={sortedSceneItems}
               assetImageMap={assetImages.map}
               debugVisible={debugVisible}
-              onInteract={handleSceneInteraction}
+              editMode={editMode}
+              selectedItemId={selectedItemId}
+              onInteract={handleSceneItemClick}
               onPropDragEnd={handlePropDragEnd}
+              onLayoutDragEnd={handleLayoutDragEnd}
             />
             <LetterOverlay
               manifest={manifest}
@@ -481,6 +561,9 @@ function App() {
           currentMode={currentMode}
           validation={validation}
           debugVisible={debugVisible}
+          editMode={editMode}
+          selectedItemLabel={selectedItemMeta?.label ?? null}
+          selectedItemDescription={selectedItemMeta?.description ?? null}
           quickNotes={quickNotes}
           totalNoteCount={totalNoteCount}
           totalLetterCount={sortedLetters.length}
@@ -491,6 +574,7 @@ function App() {
           onResetScene={resetScene}
           onToggleTv={handleToggleTv}
           onToggleDebug={() => setDebugVisible((value) => !value)}
+          onToggleEditMode={() => setEditMode((value) => !value)}
           onOpenLetters={handleOpenLetters}
           onNoteDraftChange={setNoteDraft}
           onNoteAuthorChange={setNoteAuthorId}
@@ -504,11 +588,83 @@ function App() {
             setLetterDraft(createEmptyLetterDraft());
             setNoteDraft("");
             setNoteAuthorId("you");
+            setSelectedItemId(null);
+            setEditMode(false);
+          }}
+          onResetLayout={() => {
+            if (!homeData) {
+              return;
+            }
+
+            setHomeData((current) => ({
+              ...current,
+              updatedAt: new Date().toISOString(),
+              layoutOverrides: {},
+              propPositions: manifest ? createInitialPropPositions(manifest) : current.propPositions,
+            }));
           }}
         />
       </main>
     </div>
   );
+}
+
+function applySceneLayout(item, layoutOverrides, manifest) {
+  const directOverride = layoutOverrides[item.id];
+  if (directOverride) {
+    return {
+      ...item,
+      x: directOverride.x,
+      y: directOverride.y,
+    };
+  }
+
+  if (item.id === "letter-closed") {
+    return offsetWithAnchor(item, "letter-board", layoutOverrides, manifest);
+  }
+
+  if (item.id === "tv-screen-off" || item.id === "tv-screen-on") {
+    return offsetWithAnchor(item, "tv-body", layoutOverrides, manifest);
+  }
+
+  return item;
+}
+
+function offsetWithAnchor(item, anchorId, layoutOverrides, manifest) {
+  const anchorOverride = layoutOverrides[anchorId];
+  if (!anchorOverride) {
+    return item;
+  }
+
+  const anchorItem = manifest.furniture.find((entry) => entry.id === anchorId);
+  if (!anchorItem) {
+    return item;
+  }
+
+  return {
+    ...item,
+    x: item.x + (anchorOverride.x - anchorItem.x),
+    y: item.y + (anchorOverride.y - anchorItem.y),
+  };
+}
+
+function getDynamicDragZone(manifest, layoutOverrides, itemId) {
+  const zone = manifest.dragZones.find((entry) => entry.allowed.includes(itemId));
+  if (!zone) {
+    return null;
+  }
+
+  const tableOverride = layoutOverrides["coffee-table"];
+  const tableItem = manifest.furniture.find((entry) => entry.id === "coffee-table");
+  if (!tableOverride || !tableItem) {
+    return zone;
+  }
+
+  return {
+    ...zone,
+    x: zone.x + (tableOverride.x - tableItem.x),
+    y: zone.y + (tableOverride.y - tableItem.y),
+  };
 }
 
 export default App;

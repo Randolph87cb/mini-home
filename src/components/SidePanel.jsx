@@ -10,6 +10,9 @@ export function SidePanel({
   currentMode,
   validation,
   debugVisible,
+  editMode,
+  selectedItemLabel,
+  selectedItemDescription,
   quickNotes,
   totalNoteCount,
   totalLetterCount,
@@ -20,12 +23,14 @@ export function SidePanel({
   onResetScene,
   onToggleTv,
   onToggleDebug,
+  onToggleEditMode,
   onOpenLetters,
   onNoteDraftChange,
   onNoteAuthorChange,
   onSaveNote,
   onRemoveNote,
   onResetHomeData,
+  onResetLayout,
 }) {
   const activeQuickNoteConfig = QUICK_NOTE_TARGETS[currentMode] ?? null;
 
@@ -35,6 +40,9 @@ export function SidePanel({
         <p className="card-kicker">当前互动</p>
         <h2>{currentCopy.title}</h2>
         <p>{currentCopy.body}</p>
+        {selectedItemLabel ? (
+          <p className="inline-note-preview">当前选中：{selectedItemLabel}。{selectedItemDescription}</p>
+        ) : null}
         {activeQuickNoteConfig && quickNotes.length > 0 ? (
           <p className="inline-note-preview">
             最近留话：{quickNotes[0].body}
@@ -141,7 +149,30 @@ export function SidePanel({
             )}
           </div>
         </section>
+      ) : selectedItemLabel ? (
+        <section className="compose-card">
+          <p className="card-kicker">物件查看</p>
+          <h2>{selectedItemLabel}</h2>
+          <p className="compose-helper">{selectedItemDescription}</p>
+          <p className="empty-state">这个物件当前没有独立留言入口，但你可以在编辑模式里调整它的位置。</p>
+        </section>
       ) : null}
+
+      <section className="compose-card">
+        <p className="card-kicker">布局编辑</p>
+        <h2>{editMode ? "正在编辑客厅布局" : "调整家具和人物位置"}</h2>
+        <p className="compose-helper">
+          打开后可以直接拖动沙发、电视、茶几、信件板、角色和桌面物件。位置会自动保存在本地。
+        </p>
+        <div className="control-actions">
+          <button type="button" onClick={onToggleEditMode}>
+            {editMode ? "退出编辑" : "编辑布局"}
+          </button>
+          <button type="button" className="secondary-button" onClick={onResetLayout}>
+            重置布局
+          </button>
+        </div>
+      </section>
 
       <section className="control-card">
         <p className="card-kicker">客厅状态</p>

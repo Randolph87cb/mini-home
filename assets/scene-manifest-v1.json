@@ -13,9 +13,9 @@
     {
       "id": "sofa-main",
       "src": "assets/furniture/sofa-main-v1.png",
-      "x": 400,
-      "y": 398,
-      "width": 470,
+      "x": 410,
+      "y": 420,
+      "width": 450,
       "z": 30,
       "draggable": false,
       "interactive": false,
@@ -24,9 +24,9 @@
     {
       "id": "tv-body",
       "src": "assets/furniture/tv-body-v1.png",
-      "x": 100,
-      "y": 200,
-      "width": 280,
+      "x": 128,
+      "y": 242,
+      "width": 252,
       "z": 24,
       "draggable": false,
       "interactive": true,
@@ -36,9 +36,9 @@
     {
       "id": "pullup-bar",
       "src": "assets/furniture/pullup-bar-v1.png",
-      "x": 1110,
+      "x": 1088,
       "y": 186,
-      "width": 170,
+      "width": 162,
       "z": 18,
       "draggable": false,
       "interactive": true,
@@ -48,9 +48,9 @@
     {
       "id": "coffee-table",
       "src": "assets/furniture/coffee-table-v1.png",
-      "x": 480,
-      "y": 468,
-      "width": 260,
+      "x": 500,
+      "y": 500,
+      "width": 228,
       "z": 35,
       "draggable": false,
       "interactive": false,
@@ -59,9 +59,9 @@
     {
       "id": "letter-board",
       "src": "assets/furniture/letter-board-v1.png",
-      "x": 810,
-      "y": 56,
-      "width": 290,
+      "x": 844,
+      "y": 74,
+      "width": 248,
       "z": 12,
       "draggable": false,
       "interactive": true,
@@ -74,7 +74,7 @@
       "id": "snack-bag",
       "src": "assets/props/snack-bag-v1.png",
       "x": 545,
-      "y": 472,
+      "y": 506,
       "width": 72,
       "z": 38,
       "draggable": true,
@@ -84,8 +84,8 @@
     {
       "id": "water-cup",
       "src": "assets/props/water-cup-v1.png",
-      "x": 640,
-      "y": 470,
+      "x": 622,
+      "y": 504,
       "width": 48,
       "z": 39,
       "draggable": true,
@@ -96,9 +96,9 @@
   "dragZones": [
     {
       "id": "tabletop",
-      "x": 500,
-      "y": 456,
-      "width": 250,
+      "x": 512,
+      "y": 490,
+      "width": 220,
       "height": 72,
       "allowed": [
         "snack-bag",
@@ -110,8 +110,8 @@
     {
       "id": "letter-closed",
       "src": "assets/states/letter-closed-v1.png",
-      "x": 916,
-      "y": 116,
+      "x": 950,
+      "y": 134,
       "width": 96,
       "z": 14
     },
@@ -123,37 +123,37 @@
     {
       "id": "tv-screen-off",
       "src": "assets/states/tv-screen-off-v1.png",
-      "x": 147,
-      "y": 242,
-      "width": 186,
+      "x": 171,
+      "y": 280,
+      "width": 168,
       "z": 25
     },
     {
       "id": "tv-screen-on",
       "src": "assets/states/tv-screen-on-v1.png",
-      "x": 147,
-      "y": 242,
-      "width": 186,
+      "x": 171,
+      "y": 280,
+      "width": 168,
       "z": 25
     }
   ],
   "avatars": [
     {
       "id": "avatar-sit-together",
-      "src": "assets/avatars/avatar-sit-together-v1.png",
+      "src": "assets/avatars/avatar-sit-together-back-v1.png",
       "state": "sit_together",
-      "x": 470,
-      "y": 318,
-      "width": 320,
+      "x": 480,
+      "y": 366,
+      "width": 304,
       "z": 33
     },
     {
       "id": "avatar-watch-tv",
-      "src": "assets/avatars/avatar-watch-tv-v1.png",
+      "src": "assets/avatars/avatar-watch-tv-back-v1.png",
       "state": "watch_tv",
-      "x": 470,
-      "y": 316,
-      "width": 320,
+      "x": 478,
+      "y": 364,
+      "width": 304,
       "z": 33
     },
     {

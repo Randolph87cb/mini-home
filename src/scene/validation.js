@@ -3,10 +3,26 @@ import { getRenderedSize } from "./sceneMath";
 export function buildValidationState({
   manifest,
   propPositions,
+  layoutOverrides,
   currentMode,
   pullupFrameIndex,
   assetImages,
+  editMode,
 }) {
+  if (editMode) {
+    return {
+      title: "编辑中",
+      badge: "暂停",
+      badgeLevel: "",
+      checks: [
+        {
+          level: "pass",
+          message: "布局编辑模式中暂不做严格校验，退出编辑后会按当前摆位重新检查。",
+        },
+      ],
+    };
+  }
+
   const activeAvatarId =
     currentMode === "tv"
       ? "avatar-watch-tv"
@@ -17,20 +33,22 @@ export function buildValidationState({
           : "avatar-sit-together";
 
   const checks = [
-    validateVisible(manifest, assetImages.map, "tv-body", 0.95, "电视必须完整出现在画面里。"),
-    validateVisible(manifest, assetImages.map, "sofa-main", 0.9, "沙发必须大部分可见。"),
-    validateVisible(manifest, assetImages.map, "coffee-table", 0.85, "茶几必须大部分可见。"),
+    validateVisible(manifest, assetImages.map, layoutOverrides, "tv-body", 0.95, "电视必须完整出现在画面里。"),
+    validateVisible(manifest, assetImages.map, layoutOverrides, "sofa-main", 0.9, "沙发必须大部分可见。"),
+    validateVisible(manifest, assetImages.map, layoutOverrides, "coffee-table", 0.85, "茶几必须大部分可见。"),
     validateVisible(
       manifest,
       assetImages.map,
+      layoutOverrides,
       "letter-board",
       0.9,
       "信件板必须完整出现在上半区。"
     ),
-    validateVisible(manifest, assetImages.map, "pullup-bar", 0.88, "单杠必须大部分可见。"),
+    validateVisible(manifest, assetImages.map, layoutOverrides, "pullup-bar", 0.88, "单杠必须大部分可见。"),
     validateVisible(
       manifest,
       assetImages.map,
+      layoutOverrides,
       activeAvatarId,
       0.72,
       "当前角色状态图被裁掉过多。"
@@ -38,6 +56,7 @@ export function buildValidationState({
     validateRange(
       manifest,
       assetImages.map,
+      layoutOverrides,
       "tv-body",
       "centerX",
       0,
@@ -47,6 +66,7 @@ export function buildValidationState({
     validateRange(
       manifest,
       assetImages.map,
+      layoutOverrides,
       "letter-board",
       "centerX",
       manifest.stage.width * 0.55,
@@ -56,6 +76,7 @@ export function buildValidationState({
     validateRange(
       manifest,
       assetImages.map,
+      layoutOverrides,
       "letter-board",
       "top",
       0,
@@ -65,6 +86,7 @@ export function buildValidationState({
     validateRange(
       manifest,
       assetImages.map,
+      layoutOverrides,
       "pullup-bar",
       "centerX",
       manifest.stage.width * 0.72,
@@ -74,6 +96,7 @@ export function buildValidationState({
     validateNoHeavyOverlap(
       manifest,
       assetImages.map,
+      layoutOverrides,
       "pullup-bar",
       "letter-board",
       0.12,
@@ -82,6 +105,7 @@ export function buildValidationState({
     validateContainedIn(
       manifest,
       assetImages.map,
+      layoutOverrides,
       { ...manifest.props.find((item) => item.id === "snack-bag"), ...propPositions["snack-bag"] },
       "coffee-table",
       0.45,
@@ -90,6 +114,7 @@ export function buildValidationState({
     validateContainedIn(
       manifest,
       assetImages.map,
+      layoutOverrides,
       { ...manifest.props.find((item) => item.id === "water-cup"), ...propPositions["water-cup"] },
       "coffee-table",
       0.45,
@@ -115,8 +140,8 @@ export function buildValidationState({
   };
 }
 
-function validateVisible(manifest, imageMap, id, minRatio, failMessage) {
-  const rect = getItemRect(manifest, imageMap, id);
+function validateVisible(manifest, imageMap, layoutOverrides, id, minRatio, failMessage) {
+  const rect = getItemRect(manifest, imageMap, layoutOverrides, id);
   if (!rect) {
     return failCheck(`${id} 缺失。`);
   }
@@ -129,8 +154,8 @@ function validateVisible(manifest, imageMap, id, minRatio, failMessage) {
   return failCheck(failMessage);
 }
 
-function validateRange(manifest, imageMap, id, metric, min, max, failMessage) {
-  const rect = getItemRect(manifest, imageMap, id);
+function validateRange(manifest, imageMap, layoutOverrides, id, metric, min, max, failMessage) {
+  const rect = getItemRect(manifest, imageMap, layoutOverrides, id);
   if (!rect) {
     return failCheck(`${id} 缺失。`);
   }
@@ -151,9 +176,9 @@ function validateRange(manifest, imageMap, id, metric, min, max, failMessage) {
   return failCheck(failMessage);
 }
 
-function validateNoHeavyOverlap(manifest, imageMap, primaryId, secondaryId, maxRatio, failMessage) {
-  const primaryRect = getItemRect(manifest, imageMap, primaryId);
-  const secondaryRect = getItemRect(manifest, imageMap, secondaryId);
+function validateNoHeavyOverlap(manifest, imageMap, layoutOverrides, primaryId, secondaryId, maxRatio, failMessage) {
+  const primaryRect = getItemRect(manifest, imageMap, layoutOverrides, primaryId);
+  const secondaryRect = getItemRect(manifest, imageMap, layoutOverrides, secondaryId);
 
   if (!primaryRect || !secondaryRect) {
     return failCheck(`${primaryId} 或 ${secondaryId} 缺失。`);
@@ -170,9 +195,9 @@ function validateNoHeavyOverlap(manifest, imageMap, primaryId, secondaryId, maxR
   return failCheck(failMessage);
 }
 
-function validateContainedIn(manifest, imageMap, dynamicItem, containerId, minRatio, failMessage) {
+function validateContainedIn(manifest, imageMap, layoutOverrides, dynamicItem, containerId, minRatio, failMessage) {
   const itemRect = getDynamicItemRect(imageMap, dynamicItem);
-  const containerRect = getItemRect(manifest, imageMap, containerId);
+  const containerRect = getItemRect(manifest, imageMap, layoutOverrides, containerId);
 
   if (!itemRect || !containerRect) {
     return failCheck(`${dynamicItem.id} 或 ${containerId} 缺失。`);
@@ -188,7 +213,7 @@ function validateContainedIn(manifest, imageMap, dynamicItem, containerId, minRa
   return failCheck(failMessage);
 }
 
-function getItemRect(manifest, imageMap, id) {
+function getItemRect(manifest, imageMap, layoutOverrides, id) {
   const item =
     manifest.furniture.find((entry) => entry.id === id) ||
     manifest.props.find((entry) => entry.id === id) ||
@@ -200,7 +225,46 @@ function getItemRect(manifest, imageMap, id) {
     return null;
   }
 
-  return getDynamicItemRect(imageMap, item);
+  return getDynamicItemRect(imageMap, applyLayoutOverride(item, layoutOverrides, manifest));
+}
+
+function applyLayoutOverride(item, layoutOverrides, manifest) {
+  const directOverride = layoutOverrides?.[item.id];
+  if (directOverride) {
+    return {
+      ...item,
+      x: directOverride.x,
+      y: directOverride.y,
+    };
+  }
+
+  if (item.id === "letter-closed") {
+    return offsetFromAnchor(item, "letter-board", layoutOverrides, manifest);
+  }
+
+  if (item.id === "tv-screen-off" || item.id === "tv-screen-on") {
+    return offsetFromAnchor(item, "tv-body", layoutOverrides, manifest);
+  }
+
+  return item;
+}
+
+function offsetFromAnchor(item, anchorId, layoutOverrides, manifest) {
+  const anchorOverride = layoutOverrides?.[anchorId];
+  if (!anchorOverride) {
+    return item;
+  }
+
+  const anchorItem = manifest.furniture.find((entry) => entry.id === anchorId);
+  if (!anchorItem) {
+    return item;
+  }
+
+  return {
+    ...item,
+    x: item.x + (anchorOverride.x - anchorItem.x),
+    y: item.y + (anchorOverride.y - anchorItem.y),
+  };
 }
 
 function getDynamicItemRect(imageMap, item) {
