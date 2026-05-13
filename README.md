@@ -67,7 +67,7 @@ mini-home/
 
 主要目录职责：
 
-- `src/`：前端实现代码。
+- `src/`：前端实现代码，当前已拆成页面入口、组件、hook 和场景逻辑模块。
 - `assets/`：运行时图片资源和 `scene-manifest-v1.json`。
 - `scripts/`：自动验证脚本。
 - `docs/`：架构、验证、美术规范等文档。
@@ -77,8 +77,12 @@ mini-home/
 当前关键文件：
 
 - [src/main.jsx](/D:/workspace/mini-home/src/main.jsx)：React 入口。
-- [src/App.jsx](/D:/workspace/mini-home/src/App.jsx)：首版客厅场景主实现。
+- [src/App.jsx](/D:/workspace/mini-home/src/App.jsx)：页面状态编排和首版客厅主入口。
 - [src/styles.css](/D:/workspace/mini-home/src/styles.css)：页面和场景样式。
+- [src/components/SceneStage.jsx](/D:/workspace/mini-home/src/components/SceneStage.jsx)：Konva 场景舞台组合组件。
+- [src/components/SidePanel.jsx](/D:/workspace/mini-home/src/components/SidePanel.jsx)：右侧互动说明、控制区和校验区。
+- [src/hooks/useAssetImages.js](/D:/workspace/mini-home/src/hooks/useAssetImages.js)：运行时图片资源预加载。
+- [src/scene/validation.js](/D:/workspace/mini-home/src/scene/validation.js)：页面内场景校验逻辑。
 - [assets/scene-manifest-v1.json](/D:/workspace/mini-home/assets/scene-manifest-v1.json)：场景布局和资源挂载清单。
 - [scripts/verify-scene.mjs](/D:/workspace/mini-home/scripts/verify-scene.mjs)：自动场景冒烟验证。
 

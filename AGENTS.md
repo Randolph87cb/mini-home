@@ -78,8 +78,12 @@ mini-home/
 - 当前 React 场景原型代码目录。
 - 当前约定：
   - `src/main.jsx`：React 入口。
-  - `src/App.jsx`：首版客厅场景原型。
+  - `src/App.jsx`：页面状态编排和首版客厅主入口。
   - `src/styles.css`：React 原型样式。
+  - `src/components/`：场景舞台、信件浮层、右侧面板等页面组件。
+  - `src/hooks/`：资源加载等复用 hook。
+  - `src/scene/`：场景尺寸计算、拖拽落点和页面内校验逻辑。
+  - `src/noteCopy.js`：首版互动说明文案。
 
 ### `scripts/`
 
@@ -138,6 +142,11 @@ mini-home/
   - `src/main.jsx`
   - `src/App.jsx`
   - `src/styles.css`
+- 当前首版 React 原型拆分结构还包括：
+  - `src/components/`
+  - `src/hooks/`
+  - `src/scene/`
+  - `src/noteCopy.js`
 - 当前统一场景冒烟验证入口在：
   - `npm run verify:scene`
 - 当前首版美术要求文档在：
